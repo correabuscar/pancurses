@@ -30,8 +30,8 @@ impl Window {
     ///
     /// The functionality is similar to calling window.addch() once for each character in the
     /// string.
-	pub fn addstr<T: AsRef<str>>(&self, string: T) -> i32 {
-		let s = CString::new(string.as_ref()).unwrap();
+    pub fn addstr<T: AsRef<str>>(&self, string: T) -> i32 {
+        let s = CString::new(string.as_ref()).unwrap();
         unsafe { curses::waddstr(self._window, s.as_ptr()) }
     }
 
@@ -372,7 +372,9 @@ impl Window {
     pub fn mouse_trafo(&self, y: i32, x: i32, to_screen: bool) -> (i32, i32) {
         let mut mut_y = y;
         let mut mut_x = x;
-        unsafe { curses::wmouse_trafo(self._window, &mut mut_y, &mut mut_x, to_screen as u8); }
+        unsafe {
+            curses::wmouse_trafo(self._window, &mut mut_y, &mut mut_x, to_screen as u8);
+        }
         (mut_y, mut_x)
     }
 
@@ -444,12 +446,11 @@ impl Window {
         unsafe { curses::mvwinsch(self._window, y, x, ch.to_chtype()) }
     }
 
-
     /// Add a string to the window at the specified cursor position.
     pub fn mvprintw<T: AsRef<str>>(&self, y: i32, x: i32, string: T) -> i32 {
         let s = CString::new(string.as_ref()).unwrap();
         //XXX: extracted to variable 'ps' due to false positive warning https://github.com/rust-lang/rust/issues/78691
-        let ps = CString::new("%s").unwrap();//FIXME: find a better way
+        let ps = CString::new("%s").unwrap(); //FIXME: find a better way
         unsafe { curses::mvwprintw(self._window, y, x, ps.as_ptr(), s.as_ptr()) }
         //unsafe { curses::mvwprintw(self._window, y, x, CString::new("%s").unwrap().as_ptr(), s.as_ptr()) }
     }
@@ -492,7 +493,7 @@ impl Window {
     pub fn printw<T: AsRef<str>>(&self, string: T) -> i32 {
         let s = CString::new(string.as_ref()).unwrap();
         //XXX: extracted to variable 'ps' due to false positive warning https://github.com/rust-lang/rust/issues/78691
-        let ps = CString::new("%s").unwrap();//FIXME: find a better way
+        let ps = CString::new("%s").unwrap(); //FIXME: find a better way
         unsafe { curses::wprintw(self._window, ps.as_ptr(), s.as_ptr()) }
     }
 
@@ -505,7 +506,7 @@ impl Window {
     pub fn refresh(&self) -> i32 {
         unsafe { curses::wrefresh(self._window) }
     }
-    
+
     /// Resizes the window to the given dimensions. Doesn't resize subwindows on pdcurses
     /// so you have to resize them yourself.
     pub fn resize(&mut self, nlines: i32, ncols: i32) -> i32 {
