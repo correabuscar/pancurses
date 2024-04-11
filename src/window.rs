@@ -1,3 +1,5 @@
+#![warn(temporary_cstring_as_ptr)] // false positives? https://github.com/rust-lang/rust/issues/78691
+
 use crate::{chtype, curses, platform_specific, ptr, Input, ToChtype, ERR};
 use std::ffi::CString;
 
@@ -442,10 +444,14 @@ impl Window {
         unsafe { curses::mvwinsch(self._window, y, x, ch.to_chtype()) }
     }
 
+
     /// Add a string to the window at the specified cursor position.
     pub fn mvprintw<T: AsRef<str>>(&self, y: i32, x: i32, string: T) -> i32 {
         let s = CString::new(string.as_ref()).unwrap();
-        unsafe { curses::mvwprintw(self._window, y, x, s.as_ptr()) }
+        //XXX: extracted to variable 'ps' due to false positive warning https://github.com/rust-lang/rust/issues/78691
+        let ps = CString::new("%s").unwrap();//FIXME: find a better way
+        unsafe { curses::mvwprintw(self._window, y, x, ps.as_ptr(), s.as_ptr()) }
+        //unsafe { curses::mvwprintw(self._window, y, x, CString::new("%s").unwrap().as_ptr(), s.as_ptr()) }
     }
 
     /// Moves the window so that the upper left-hand corner is at position (y,x).
@@ -485,7 +491,9 @@ impl Window {
     /// Add a string to the window at the current cursor position.
     pub fn printw<T: AsRef<str>>(&self, string: T) -> i32 {
         let s = CString::new(string.as_ref()).unwrap();
-        unsafe { curses::wprintw(self._window, s.as_ptr()) }
+        //XXX: extracted to variable 'ps' due to false positive warning https://github.com/rust-lang/rust/issues/78691
+        let ps = CString::new("%s").unwrap();//FIXME: find a better way
+        unsafe { curses::wprintw(self._window, ps.as_ptr(), s.as_ptr()) }
     }
 
     /// Copies the named window to the physical terminal screen, taking into account what
